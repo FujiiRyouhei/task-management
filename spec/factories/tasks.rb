@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :task do
-    title { "MyString" }
-    description { "MyText" }
-    due_date { "2023-03-31" }
+    title { Faker::String.random(length: 4) }
+    description { Faker::String.random(length: 10) }
+    due_date { Faker::Date.forward(days: 10) }
     completed { false }
   end
 end
