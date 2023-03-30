@@ -15,8 +15,10 @@ class TasksController < ApplicationController
   # POST /tasks
   # POST /tasks.json
   def create
+    # binding.pry
     @task = Task.new(task_params)
 
+    # binding.pry
     if @task.save
       render :show, status: :created, location: @task
     else
