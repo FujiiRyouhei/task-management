@@ -30,6 +30,7 @@ RSpec.describe "Tasks", type: :request do
         expect(res["title"]).to eq task.title
         expect(res["description"]).to eq task.description
         expect(res["due_date"]).to eq task.due_date.strftime
+        expect(res["completed"]).to eq task.completed
         expect(response).to have_http_status(:ok)
       end
     end
@@ -44,36 +45,30 @@ RSpec.describe "Tasks", type: :request do
     end
   end
 
-  describe "POST /create" do
-    context "with valid parameters" do
-      it "creates a new Task" do
-        expect {
-          post tasks_url,
-               params: { task: valid_attributes }, headers: valid_headers, as: :json
-        }.to change { Task.count }.by(1)
-      end
+  describe "POST /tasks" do
+    subject { post(tasks_path, params: params) }
 
-      it "renders a JSON response with the new task" do
-        post tasks_url,
-             params: { task: valid_attributes }, headers: valid_headers, as: :json
+    context "適切なパラメーターを送信したとき" do
+      let(:params) { { task: attributes_for(:task) } }
+
+      it "task が作成される" do
+        expect { subject }.to change { Task.count }.by(1)
+        res = JSON.parse(response.body)
+        expect(res["title"]).to eq params[:task][:title]
+        expect(res["description"]).to eq params[:task][:description]
+        expect(res["due_date"]).to eq params[:task][:due_date].strftime
+        expect(res["completed"]).to eq params[:task][:completed]
         expect(response).to have_http_status(:created)
-        expect(response.content_type).to match(a_string_including("application/json"))
       end
     end
 
-    context "with invalid parameters" do
-      it "does not create a new Task" do
-        expect {
-          post tasks_url,
-               params: { task: invalid_attributes }, as: :json
-        }.to change { Task.count }.by(0)
-      end
+    context "不適切なパラメーターを送信した時" do
+      context "user キーにパラメーターを入れていない時" do
+        let(:params) { attributes_for(:task) }
 
-      it "renders a JSON response with errors for the new task" do
-        post tasks_url,
-             params: { task: invalid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to match(a_string_including("application/json"))
+        it "task の作成に失敗する" do
+          expect { subject }.to raise_error(ActionController::ParameterMissing)
+        end
       end
     end
   end
