@@ -7,20 +7,40 @@ RSpec.describe "Tasks", type: :request do
     before { create_list(:task, 3) }
 
     it "task の一覧を取得できる" do
+      # binding.pry
       subject
       res = JSON.parse(response.body)
       expect(res.length).to eq 3
       expect(res[0].keys).to eq ["id", "title", "description", "due_date", "completed", "created_at", "updated_at", "url"]
       expect(response).to have_http_status(:ok)
-      # binding.pry
     end
   end
 
-  describe "GET /show" do
-    it "renders a successful response" do
-      task = Task.create! valid_attributes
-      get task_url(task), as: :json
-      expect(response).to be_successful
+  describe "GET /tasks/:id" do
+    subject { get(task_path(task_id)) }
+
+    context "指定した id の task が存在する時" do
+      let(:task_id) { task.id }
+      let(:task) { create(:task) }
+
+      it "その task の詳細が取得できる" do
+        # binding.pry
+        subject
+        res = JSON.parse(response.body)
+        expect(res["title"]).to eq task.title
+        expect(res["description"]).to eq task.description
+        expect(res["due_date"]).to eq task.due_date.strftime
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "指定した id の task が存在しない時" do
+      let(:task_id) { 1_000_000_000 }
+
+      it "task が見つからない" do
+        # binding.pry
+        expect { subject }.to raise_error(ActiveRecord::RecordNotFound)
+      end
     end
   end
 
