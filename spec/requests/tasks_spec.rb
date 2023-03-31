@@ -73,37 +73,20 @@ RSpec.describe "Tasks", type: :request do
     end
   end
 
-  describe "PATCH /update" do
-    context "with valid parameters" do
-      let(:new_attributes) {
-        skip("Add a hash of attributes valid for your model")
-      }
-
-      it "updates the requested task" do
-        task = Task.create! valid_attributes
-        patch task_url(task),
-              params: { task: new_attributes }, headers: valid_headers, as: :json
-        task.reload
-        skip("Add assertions for updated state")
-      end
-
-      it "renders a JSON response with the task" do
-        task = Task.create! valid_attributes
-        patch task_url(task),
-              params: { task: new_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:ok)
-        expect(response.content_type).to match(a_string_including("application/json"))
-      end
+  describe "PATCH /tasks/:id" do
+    subject { patch(task_path(task_id), params: params) }
+    let(:params) do
+      { task: { title: Faker::String.random(length: 4), created_at: 1.days.ago } }
     end
+    let(:task_id) { task.id }
+    let(:task) { create(:task) }
 
-    context "with invalid parameters" do
-      it "renders a JSON response with errors for the task" do
-        task = Task.create! valid_attributes
-        patch task_url(task),
-              params: { task: invalid_attributes }, headers: valid_headers, as: :json
-        expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.content_type).to match(a_string_including("application/json"))
-      end
+    fit "任意の task の内容が更新できる" do
+      expect { subject }.to change { Task.find(task_id).title }.from(task.title).to(params[:task][:title]) &
+                            not_change { Task.find(task_id).description }
+                            not_change { Task.find(task_id).due_date }
+                            not_change { Task.find(task_id).completed }
+
     end
   end
 
