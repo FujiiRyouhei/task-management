@@ -75,18 +75,18 @@ RSpec.describe "Tasks", type: :request do
 
   describe "PATCH /tasks/:id" do
     subject { patch(task_path(task_id), params: params) }
+
     let(:params) do
       { task: { title: Faker::String.random(length: 4), created_at: 1.days.ago } }
     end
     let(:task_id) { task.id }
     let(:task) { create(:task) }
 
-    fit "任意の task の内容が更新できる" do
+    it "任意の task の内容が更新できる" do
       expect { subject }.to change { Task.find(task_id).title }.from(task.title).to(params[:task][:title]) &
                             not_change { Task.find(task_id).description }
-                            not_change { Task.find(task_id).due_date }
-                            not_change { Task.find(task_id).completed }
-
+      not_change { Task.find(task_id).due_date }
+      not_change { Task.find(task_id).completed }
     end
   end
 
